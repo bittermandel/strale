@@ -11,8 +11,11 @@ use vulkano::{
     memory::pool::StandardMemoryPool,
     pipeline::{graphics::viewport::Viewport, Pipeline},
     render_pass::{LoadOp, StoreOp},
-    swapchain::{acquire_next_image, AcquireError, SwapchainCreateInfo, SwapchainCreationError},
+    swapchain::{
+        acquire_next_image, AcquireError, PresentInfo, SwapchainCreateInfo, SwapchainCreationError,
+    },
     sync::{self, FlushError, GpuFuture},
+    NonExhaustive,
 };
 use winit::window::Window;
 
@@ -22,6 +25,7 @@ pub struct Renderer {
     device: Arc<Device>,
     vertex_buffer: Arc<CpuAccessibleBuffer<[Vertex]>>,
     previous_frame_end: Option<Box<dyn GpuFuture>>,
+    recreate_swapchain: bool,
 }
 
 impl Renderer {
@@ -58,7 +62,8 @@ impl Renderer {
         Ok(Self {
             device: backend.device.clone(),
             vertex_buffer: empty_buffer,
-            previous_frame_end: None,
+            previous_frame_end: Some(sync::now(backend.device.raw.clone()).boxed()),
+            recreate_swapchain: false,
         })
     }
 
@@ -77,7 +82,13 @@ impl Renderer {
         Ok(())
     }
 
-    pub fn render(&mut self, backend: &Backend) -> anyhow::Result<()> {
+    pub fn render(&mut self, backend: &mut Backend) -> anyhow::Result<()> {
+        if self.recreate_swapchain {
+            backend.swapchain.recreate(backend.surface.window());
+        }
+
+        self.previous_frame_end.as_mut().unwrap().cleanup_finished();
+
         let mut builder = AutoCommandBufferBuilder::primary(
             self.device.raw.clone(),
             self.device.queue.queue_family_index(),
@@ -94,13 +105,21 @@ impl Renderer {
         let attachment_image_views =
             window_size_dependent_setup(&backend.swapchain.images, &mut viewport);
 
-        let (image_index, _, acquire_future) =
+        let (image_index, suboptimal, acquire_future) =
             match acquire_next_image(backend.swapchain.raw.clone(), None) {
                 Ok(r) => r,
+                Err(AcquireError::OutOfDate) => {
+                    self.recreate_swapchain = true;
+                    return Ok(());
+                }
                 Err(e) => panic!("Failed to acquire next image: {:?}", e),
             };
 
-        let (triangle_pipeline, pc) = triangle::render_triangle(backend);
+        if suboptimal {
+            self.recreate_swapchain = true;
+        }
+
+        let (triangle_pipeline, pc) = triangle::render_triangle(backend, viewport.clone());
 
         builder
             .begin_rendering(RenderingInfo {
@@ -128,9 +147,9 @@ impl Renderer {
             .unwrap()
             .set_viewport(0, [viewport.clone()])
             .bind_pipeline_graphics(triangle_pipeline.clone())
-            .bind_vertex_buffers(0, self.vertex_buffer.clone())
+            //.bind_vertex_buffers(0, self.vertex_buffer.clone())
             .push_constants(triangle_pipeline.layout().clone(), 0, pc)
-            .draw(self.vertex_buffer.len() as u32, 1, 0, 0)
+            .draw(3, 1, 0, 0)
             .unwrap()
             // We leave the render pass.
             .end_rendering()
@@ -139,7 +158,8 @@ impl Renderer {
         // Finish building the command buffer by calling `build`.
         let command_buffer = builder.build().unwrap();
 
-        self.previous_frame_end = Some(sync::now(self.device.raw.clone()).boxed());
+        let mut present_info = PresentInfo::swapchain(backend.swapchain.raw.clone());
+        present_info.index = image_index;
 
         let future = self
             .previous_frame_end
@@ -154,10 +174,7 @@ impl Renderer {
             // This function does not actually present the image immediately. Instead it submits a
             // present command at the end of the queue. This means that it will only be presented once
             // the GPU has finished executing the command buffer that draws the triangle.
-            .then_swapchain_present(
-                backend.device.queue.clone(),
-                vulkano::swapchain::PresentInfo::swapchain(backend.swapchain.raw.clone()),
-            )
+            .then_swapchain_present(backend.device.queue.clone(), present_info)
             .then_signal_fence_and_flush();
 
         println!("waiting for future");
@@ -167,6 +184,7 @@ impl Renderer {
                 self.previous_frame_end = Some(future.boxed());
             }
             Err(FlushError::OutOfDate) => {
+                self.recreate_swapchain = true;
                 self.previous_frame_end = Some(sync::now(self.device.raw.clone()).boxed());
             }
             Err(e) => {

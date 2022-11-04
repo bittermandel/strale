@@ -1,3 +1,5 @@
+use std::process::exit;
+
 use strale::renderer::{backend::Backend, renderer::Renderer};
 use vulkano_win::VkSurfaceBuild;
 use winit::{
@@ -29,6 +31,7 @@ fn main() {
             ..
         } => {
             *control_flow = ControlFlow::Exit;
+            exit(0);
         }
         Event::WindowEvent {
             event: WindowEvent::Resized(_),
@@ -38,7 +41,7 @@ fn main() {
         }
         Event::RedrawEventsCleared => {
             println!("rendering");
-            renderer.render(&backend).unwrap();
+            renderer.render(&mut backend).unwrap();
             println!("rendered");
         }
         _ => (),

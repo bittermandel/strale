@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Instant};
 
 use vulkano::{
     device::{physical::PhysicalDeviceType, DeviceExtensions},
@@ -18,6 +18,7 @@ pub struct Backend {
     pub device: Arc<Device>,
     pub surface: Arc<Surface<Window>>,
     pub swapchain: Swapchain,
+    pub first_frame: Instant,
 }
 
 impl Backend {
@@ -89,6 +90,7 @@ impl Backend {
             device,
             surface,
             swapchain,
+            first_frame: Instant::now(),
         })
     }
 }

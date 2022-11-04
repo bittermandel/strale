@@ -78,7 +78,7 @@ impl Swapchain {
         })
     }
 
-    pub fn recreate(&mut self, window: Window) {
+    pub fn recreate(&mut self, window: &Window) {
         let (new_swapchain, new_images) = match self.raw.recreate(SwapchainCreateInfo {
             image_extent: window.inner_size().into(),
             ..self.raw.create_info()
