@@ -169,9 +169,9 @@ pub fn render_triangle(
             }
 
             vec3 randomInUnitSphere(vec2 p) {
-                float phi = 2.0 * PI * random(p);
-                float cosTheta = 2.0 * random(p) - 1.0;
-                float u = random(p);
+                float phi = 2.0 * PI * hash32(p).x;
+                float cosTheta = 2.0 * hash32(p).y - 1.0;
+                float u = hash32(p).z;
             
                 float theta = acos(cosTheta);
                 float r = pow(u, 1.0 / 3.0);
@@ -212,13 +212,13 @@ pub fn render_triangle(
                 vec3 vup = vec3(0, -1.0, 0);
                 float aspect_ratio = 16/9;
 
-                /*float angle = pc.iTime / 2.0;
+                float angle = pc.iTime / 2.0;
                 mat4 rotationMatrix = mat4(cos(angle), 0.0, sin(angle), 0.0,
                                                 0.0, 1.0,        0.0, 0.0,
                                         -sin(angle),  0.0, cos(angle), 0.0,
                                                 0.0,  0.0,        0.0, 1.0);
             
-                lookfrom = vec3(rotationMatrix * vec4(lookfrom, 1.0));*/
+                lookfrom = vec3(rotationMatrix * vec4(lookfrom, 1.0));
 
                 float theta = radians(20.0);
                 
@@ -268,7 +268,7 @@ pub fn render_triangle(
 
             
             // SCENE
-            Sphere scene[] = Sphere[84](
+            Sphere scene[] = Sphere[80](
                 Sphere(vec3( 0.000000, -1000.000000, 0.000000), 1000.000000, 0, vec3( 0.500000, 0.500000, 0.500000)),
                 Sphere(vec3( -7.995381, 0.200000, -7.478668), 0.200000, 0, vec3( 0.380012, 0.506085, 0.762437)),
                 Sphere(vec3( -7.696819, 0.200000, -5.468978), 0.200000, 0, vec3( 0.596282, 0.140784, 0.017972)),
@@ -284,7 +284,6 @@ pub fn render_triangle(
                 Sphere(vec3( -5.410681, 0.200000, -3.527741), 0.200000, 0, vec3( 0.352200, 0.191551, 0.115972)),
                 Sphere(vec3( -5.460670, 0.200000, -1.166543), 0.200000, 0, vec3( 0.029486, 0.249874, 0.077989)),
                 Sphere(vec3( -5.457659, 0.200000, 0.363870), 0.200000, 0, vec3( 0.395713, 0.762043, 0.108515)),
-                Sphere(vec3( -5.798715, 0.200000, 2.161684), 0.200000, 2, vec3( 0.000000, 0.000000, 0.000000)),
                 Sphere(vec3( -5.116586, 0.200000, 4.470188), 0.200000, 0, vec3( 0.059444, 0.404603, 0.171767)),
                 Sphere(vec3( -5.273591, 0.200000, 6.795187), 0.200000, 0, vec3( 0.499454, 0.131330, 0.158348)),
                 Sphere(vec3( -5.120286, 0.200000, 8.731398), 0.200000, 0, vec3( 0.267365, 0.136024, 0.300483)),
@@ -323,9 +322,7 @@ pub fn render_triangle(
                 Sphere(vec3( 2.194283, 0.200000, 2.880603), 0.200000, 0, vec3( 0.452710, 0.824152, 0.045179)),
                 Sphere(vec3( 2.281000, 0.200000, 4.094307), 0.200000, 0, vec3( 0.002091, 0.145849, 0.032535)),
                 Sphere(vec3( 2.080841, 0.200000, 6.716384), 0.200000, 0, vec3( 0.468539, 0.032772, 0.018071)),
-                Sphere(vec3( 2.287131, 0.200000, 8.583242), 0.200000, 0, vec3( 0.000000, 0.000000, 0.000000)),
                 Sphere(vec3( 4.329136, 0.200000, -7.497218), 0.200000, 0, vec3( 0.030865, 0.071452, 0.016051)),
-                Sphere(vec3( 4.502115, 0.200000, -5.941060), 0.200000, 0, vec3( 0.000000, 0.000000, 0.000000)),
                 Sphere(vec3( 4.750631, 0.200000, -3.836759), 0.200000, 0, vec3( 0.702578, 0.084798, 0.141374)),
                 Sphere(vec3( 4.082084, 0.200000, -1.180746), 0.200000, 0, vec3( 0.043052, 0.793077, 0.018707)),
                 Sphere(vec3( 4.429173, 0.200000, 2.069721), 0.200000, 0, vec3( 0.179009, 0.147750, 0.617371)),
@@ -350,7 +347,6 @@ pub fn render_triangle(
                 Sphere(vec3( 8.595298, 0.200000, 4.802001), 0.200000, 0, vec3( 0.188493, 0.184933, 0.040215)),
                 Sphere(vec3( 8.036216, 0.200000, 6.739752), 0.200000, 0, vec3( 0.023192, 0.364636, 0.464844)),
                 Sphere(vec3( 8.256561, 0.200000, 8.129115), 0.200000, 0, vec3( 0.002612, 0.598319, 0.435378)),
-                Sphere(vec3( 0.000000, 1.000000, 0.000000), 1.000000, 0, vec3( 0.000000, 0.000000, 0.000000)),
                 Sphere(vec3( -4.000000, 1.000000, 0.000000), 1.000000, 0, vec3( 0.400000, 0.200000, 0.100000)),
                 Sphere(vec3( 4.000000, 1.000000, 0.000000), 1.000000, 1, vec3( 0.700000, 0.600000, 0.500000))
                 );
@@ -360,10 +356,11 @@ pub fn render_triangle(
                 Sphere sphere = scene[index];
                 vec3 oc = r.origin - sphere.center;
             
+                float a = dot(r.direction, r.direction);
                 float halfB = dot(oc, r.direction);
                 float c = dot(oc, oc) - sphere.radius*sphere.radius;
             
-                float discriminant = halfB*halfB - c;
+                float discriminant = halfB*halfB - a * c;
                 
                 if (discriminant < 0.0)
                 {
@@ -372,12 +369,15 @@ pub fn render_triangle(
             
                 float sqrtd = sqrt(discriminant);
                 
-                float t1 = -halfB - sqrtd;
-                float t2 = -halfB + sqrtd;
-                
-                float t = t1 < 0.001 ? t2 : t1;
+                float t = (-halfB - sqrtd) / a;
+
                 if (t < t_min || t > t_max)
                 {
+                    t = (-halfB + sqrtd) / a;
+                    if (t < t_min || t > t_max)
+                    {
+                        return false;
+                    }
                     return false;
                 }
             
@@ -432,7 +432,7 @@ pub fn render_triangle(
                         } else if (rec.material == material_metal)
                         {
                             vec3 target = rec.point + rec.normal;
-                            r.origin = rec.point;
+                            r.origin = rec.point + rec.normal * 0.001;
                             r.direction = reflect(normalize(r.direction), rec.normal);
                             col *= rec.albedo;
                         }
@@ -460,7 +460,7 @@ pub fn render_triangle(
             
                 for (float s = 0.0; s < SAMPLES_PER_PIXEL; ++s)
                 {
-                    vec2 seed = hash22(outUV + s + pc.iTime);
+                    vec2 seed = hash22(outUV + s);
                 
                     Ray r = Ray(camera.origin, normalize(camera.lowerLeftCorner + uv.x * camera.horizontal + uv.y * camera.vertical - camera.origin));
                     col += rayColor(r, seed);
