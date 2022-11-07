@@ -1,49 +1,55 @@
 use std::process::exit;
 
-use strale::renderer::{backend::Backend, renderer::Renderer};
-use vulkano_win::VkSurfaceBuild;
+use strale::renderer::{renderer::Renderer, vulkan::backend::Backend};
 use winit::{
-    dpi::{LogicalSize, PhysicalSize},
+    dpi::PhysicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
+    platform::run_return::EventLoopExtRunReturn,
     window::WindowBuilder,
 };
 
 mod runtime;
 
 fn main() {
-    println!("Running Strale");
+    env_logger::init();
+    log::info!("Running Strale");
 
-    let event_loop = EventLoop::new();
-    let window = WindowBuilder::new().build(&event_loop).unwrap();
+    let mut event_loop = EventLoop::new();
+    let window = WindowBuilder::new()
+        .with_resizable(false)
+        .with_title("hello-kajiya")
+        .with_inner_size(winit::dpi::LogicalSize::new(1920, 1080))
+        .build(&event_loop)
+        .unwrap();
 
-    window.set_inner_size(PhysicalSize::new(1920.0, 1080.0));
-
-    let mut backend = Backend::new(window).unwrap();
+    let mut backend = Backend::new(&window).unwrap();
 
     let mut renderer = Renderer::new(&backend).unwrap();
 
-    let mut recreate_swapchain = false;
+    //let mut events = Vec::new();
 
-    event_loop.run(move |event, _, control_flow| match event {
-        Event::WindowEvent {
-            event: WindowEvent::CloseRequested,
-            ..
-        } => {
-            *control_flow = ControlFlow::Exit;
-            exit(0);
-        }
-        Event::WindowEvent {
-            event: WindowEvent::Resized(_),
-            ..
-        } => {
-            recreate_swapchain = true;
-        }
-        Event::RedrawEventsCleared => {
-            println!("rendering");
-            renderer.render(&mut backend).unwrap();
-            println!("rendered");
-        }
-        _ => (),
-    });
+    let mut running = true;
+
+    while running {
+        event_loop.run_return(|event, _, control_flow| {
+            *control_flow = ControlFlow::Poll;
+
+            match &event {
+                Event::WindowEvent { event, .. } => match event {
+                    WindowEvent::CloseRequested => {
+                        *control_flow = ControlFlow::Exit;
+                        running = false;
+                    }
+                    _ => {}
+                },
+                Event::MainEventsCleared => {
+                    *control_flow = ControlFlow::Exit;
+                }
+                _ => (),
+            }
+        });
+
+        renderer.draw(&mut backend.swapchain);
+    }
 }
