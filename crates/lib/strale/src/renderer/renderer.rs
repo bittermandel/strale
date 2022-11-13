@@ -96,8 +96,8 @@ impl Renderer {
                 .render_area(
                     vk::Rect2D::builder()
                         .extent(vk::Extent2D {
-                            width: 800,
-                            height: 600,
+                            width: 1920,
+                            height: 1080,
                         })
                         .offset(vk::Offset2D { x: 0, y: 0 })
                         .build(),
@@ -132,7 +132,7 @@ impl Renderer {
                     .raw
                     .cmd_begin_rendering(main_cb.raw, &render_info);
 
-                render_triangle(&self.device.clone());
+                render_triangle(&self.device.clone(), main_cb);
 
                 self.device.raw.cmd_end_rendering(main_cb.raw);
 
@@ -144,7 +144,7 @@ impl Renderer {
                     .signal_semaphores(std::slice::from_ref(
                         &swapchain_image.rendering_finished_semaphore,
                     ))
-                    .wait_dst_stage_mask(&[vk::PipelineStageFlags::COLOR_ATTACHMENT_OUTPUT])
+                    .wait_dst_stage_mask(&[vk::PipelineStageFlags::FRAGMENT_SHADER])
                     .build()];
 
                 self.device
