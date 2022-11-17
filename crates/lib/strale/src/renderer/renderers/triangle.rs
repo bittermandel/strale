@@ -1,4 +1,4 @@
-use std::{ffi::CStr, io::Cursor, mem::align_of, sync::Arc};
+use std::{ffi::CStr, io::Cursor, mem::align_of, sync::Arc, time::Instant};
 
 use ash::{
     util::{read_spv, Align},
@@ -136,7 +136,13 @@ pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
         .logic_op(vk::LogicOp::CLEAR)
         .attachments(&color_blend_attachment_states);
 
-    let layout_create_info = vk::PipelineLayoutCreateInfo::default();
+    let layout_create_info = vk::PipelineLayoutCreateInfo::builder()
+        .push_constant_ranges(&[vk::PushConstantRange::builder()
+            .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+            .offset(0)
+            .size(4)
+            .build()])
+        .build();
 
     let pipeline_layout = unsafe {
         device
@@ -237,6 +243,8 @@ pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
 
     let vertex_input_buffer = unsafe { vertex_buffer(device) };
 
+    println!("{:?}", device.first_frame.elapsed());
+
     unsafe {
         device
             .raw
@@ -244,6 +252,13 @@ pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
         device
             .raw
             .cmd_bind_vertex_buffers(cb.raw, 0, &[vertex_input_buffer], &[0]);
+        device.raw.cmd_push_constants(
+            cb.raw,
+            pipeline_layout,
+            vk::ShaderStageFlags::FRAGMENT,
+            0,
+            &device.first_frame.elapsed().as_secs_f32().to_ne_bytes()[..],
+        );
         device.raw.cmd_set_viewport(cb.raw, 0, viewports);
         device.raw.cmd_set_scissor(cb.raw, 0, scissors);
         device.raw.cmd_draw(cb.raw, 3, 1, 0, 0);

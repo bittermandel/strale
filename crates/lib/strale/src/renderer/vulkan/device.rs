@@ -2,6 +2,7 @@ use std::{
     collections::HashSet,
     os::raw::c_char,
     sync::{Arc, Mutex},
+    time::{Duration, Instant},
 };
 
 use anyhow::Result;
@@ -99,6 +100,7 @@ pub struct Device {
     pub ray_tracing_pipeline_ext: khr::RayTracingPipeline,
     pub ray_tracing_pipeline_properties: vk::PhysicalDeviceRayTracingPipelinePropertiesKHR,
     frames: [Mutex<Arc<DeviceFrame>>; 2],
+    pub first_frame: Instant,
 }
 
 impl Device {
@@ -276,6 +278,7 @@ impl Device {
                 // ray_query_ext,
                 ray_tracing_pipeline_properties,
                 frames: [Mutex::new(Arc::new(frame0)), Mutex::new(Arc::new(frame1))],
+                first_frame: Instant::now(),
             }))
         }
     }

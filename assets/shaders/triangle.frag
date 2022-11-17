@@ -1,4 +1,4 @@
- #version 450
+#version 450
 
 #define PI 3.1415926535
 #define MAX_FLOAT 99999.99
@@ -7,13 +7,17 @@
 layout (location = 0) out vec4 ocolor;
 layout (location = 0) in vec2 outUV;
 
+layout(push_constant) uniform PushConstants {
+    float time;
+} pc;
+
 // UTILS
 // random number generator
 vec2 randState;
 
 float hash( const float n ) 
 {
-        return fract(sin(n)*43758.54554213);
+    return fract(sin(n)*43758.54554213);
 }
 
 
@@ -152,6 +156,14 @@ Camera makeCamera()
     float aspect_ratio = 16/9;
     float theta = radians(20.0);
     
+    float angle = pc.time / 2.0;
+    mat4 rotationMatrix = mat4(cos(angle), 0.0, sin(angle), 0.0,
+                                    0.0, 1.0,        0.0, 0.0,
+                            -sin(angle),  0.0, cos(angle), 0.0,
+                                    0.0,  0.0,        0.0, 1.0);
+
+    lookfrom = vec3(rotationMatrix * vec4(lookfrom, 1.0));
+
     float h = tan(theta/2.0);
     float viewport_height = 2.0 * h;
     float viewport_width = aspect_ratio * viewport_height;
@@ -384,7 +396,7 @@ void main()
 
     for (float s = 0.0; s < SAMPLES_PER_PIXEL; ++s)
     {
-        vec2 seed = hash22(outUV + s);
+        vec2 seed = hash22(outUV + s + pc.time);
     
         Ray r = Ray(camera.origin, normalize(camera.lowerLeftCorner + uv.x * camera.horizontal + uv.y * camera.vertical - camera.origin));
         col += rayColor(r, seed);
