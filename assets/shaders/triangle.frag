@@ -2,7 +2,7 @@
 
 #define PI 3.1415926535
 #define MAX_FLOAT 99999.99
-#define SAMPLES_PER_PIXEL 16
+#define SAMPLES_PER_PIXEL 8
 #define MAX_RECURSION 4
 layout (location = 0) out vec4 ocolor;
 layout (location = 0) in vec2 outUV;
@@ -152,7 +152,7 @@ Camera makeCamera()
 {
     vec3 lookfrom = vec3(25.0, 4.0, 3.0);
     const vec3 lookat = vec3(0.0, 0.0, 0.0);
-    vec3 vup = vec3(0, -1.0, 0);
+    vec3 vup = vec3(0, 1.0, 0);
     float aspect_ratio = 16/9;
     float theta = radians(20.0);
     
@@ -162,7 +162,7 @@ Camera makeCamera()
                             -sin(angle),  0.0, cos(angle), 0.0,
                                     0.0,  0.0,        0.0, 1.0);
 
-    lookfrom = vec3(rotationMatrix * vec4(lookfrom, 1.0));
+    lookfrom = vec3(vec4(lookfrom, 1.0) * rotationMatrix);
 
     float h = tan(theta/2.0);
     float viewport_height = 2.0 * h;
@@ -387,7 +387,7 @@ vec3 rayColor(Ray r, vec2 seed)
 }
 void main()
 {
-        // Normalized pixel coordinates (from 0 to 1)
+    // Normalized pixel coordinates (from 0 to 1)
     vec2 uv = outUV;
 
     Camera camera = makeCamera();

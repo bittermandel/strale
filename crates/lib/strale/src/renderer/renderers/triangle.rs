@@ -8,7 +8,10 @@ use bytemuck::offset_of;
 
 use crate::renderer::{
     utils::get_memory_type_index,
-    vulkan::device::{CommandBuffer, Device},
+    vulkan::{
+        device::{CommandBuffer, Device},
+        swapchain::{Swapchain, SwapchainDesc},
+    },
 };
 
 #[derive(Clone, Debug, Copy, Default)]
@@ -92,7 +95,7 @@ pub unsafe fn vertex_buffer(device: &Device) -> vk::Buffer {
     return vertex_input_buffer;
 }
 
-pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
+pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer, desc: SwapchainDesc) {
     let mut vertex_spv_file =
         Cursor::new(&include_bytes!("../../../../../../assets/shaders/triangle.vert.spv")[..]);
     let mut frag_spv_file =
@@ -184,26 +187,18 @@ pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
     };
 
     let viewports = &[vk::Viewport {
-        width: 1920.0,
-        height: 1080.0,
+        width: desc.dims.width as f32,
+        height: -(desc.dims.height as f32),
+        y: desc.dims.height as f32,
         ..Default::default()
     }];
-    let scissors = &[Rect2D::builder()
-        .extent(Extent2D {
-            height: 1080,
-            width: 1920,
-        })
-        .build()];
+    println!("{:?}", viewports);
+    let scissors = &[Rect2D::builder().extent(desc.dims).build()];
 
     let graphics = GraphicsPipelineCreateInfo::builder()
         .push_next(&mut pipeline)
-        // We describe the formats of attachment images where the colors, depth and/or stencil
-        // information will be written. The pipeline will only be usable with this particular
-        // configuration of the attachment images.
-        // We need to indicate the layout of the vertices.
         .vertex_input_state(&vertex_input_state_info)
         .input_assembly_state(&vertex_input_assembly_state_info)
-        // Use a resizable viewport set to draw over the entire window
         .viewport_state(
             &PipelineViewportStateCreateInfo::builder()
                 .viewports(viewports)
@@ -224,10 +219,9 @@ pub fn render_triangle(device: &Arc<Device>, cb: &CommandBuffer) {
                 .module(fragment_shader_module)
                 .build(),
         ])
-        // Now that our builder is filled, we call `build()` to obtain an actual pipeline.
         .rasterization_state(
             &vk::PipelineRasterizationStateCreateInfo::builder()
-                .cull_mode(vk::CullModeFlags::FRONT)
+                .cull_mode(vk::CullModeFlags::BACK)
                 .front_face(vk::FrontFace::COUNTER_CLOCKWISE)
                 .line_width(1.0),
         )

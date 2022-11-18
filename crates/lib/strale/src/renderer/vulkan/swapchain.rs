@@ -8,6 +8,11 @@ use ash::{
 
 use super::{device::Device, image::Image, surface::Surface};
 
+#[derive(Clone, Copy, Default)]
+pub struct SwapchainDesc {
+    pub dims: vk::Extent2D,
+}
+
 pub struct SwapchainImage {
     pub image: Arc<Image>,
     pub index: u32,
@@ -27,10 +32,15 @@ pub struct Swapchain {
     pub rendering_finished_semaphores: Vec<vk::Semaphore>,
     pub images: Vec<Arc<Image>>,
     pub next_semaphore: usize,
+    pub desc: SwapchainDesc,
 }
 
 impl Swapchain {
-    pub fn new(device: &Arc<Device>, surface: &Arc<Surface>) -> anyhow::Result<Self> {
+    pub fn new(
+        device: &Arc<Device>,
+        surface: &Arc<Surface>,
+        desc: SwapchainDesc,
+    ) -> anyhow::Result<Self> {
         let surface_capabilities = unsafe {
             surface
                 .fns
@@ -45,14 +55,11 @@ impl Swapchain {
         log::info!("Swapchain image count: {}", desired_image_count);
 
         let surface_resolution = match surface_capabilities.current_extent.width {
-            std::u32::MAX => Extent2D {
-                height: 1080,
-                width: 1920,
-            },
+            std::u32::MAX => desc.dims,
             _ => surface_capabilities.current_extent,
         };
 
-        let present_mode = vk::PresentModeKHR::FIFO;
+        let present_mode = vk::PresentModeKHR::IMMEDIATE;
         log::info!("Presentation mode: {:?}", present_mode);
 
         let swapchain_create_info = vk::SwapchainCreateInfoKHR::builder()
@@ -110,6 +117,7 @@ impl Swapchain {
             rendering_finished_semaphores,
             images,
             next_semaphore: 0,
+            desc,
         })
     }
 

@@ -19,7 +19,8 @@ fn main() {
     let window = WindowBuilder::new()
         .with_resizable(false)
         .with_title("hello-kajiya")
-        .with_inner_size(winit::dpi::LogicalSize::new(1920, 1080))
+        //.with_inner_size(winit::dpi::LogicalSize::new(1920, 1080))
+        .with_fullscreen(Some(winit::window::Fullscreen::Borderless(None)))
         .build(&event_loop)
         .unwrap();
 

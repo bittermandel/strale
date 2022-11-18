@@ -4,6 +4,8 @@ use ash::vk;
 use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
 use winit::window::Window;
 
+use crate::renderer::vulkan::swapchain::SwapchainDesc;
+
 use super::{
     device::Device,
     instance::Instance,
@@ -51,7 +53,16 @@ impl Backend {
 
         let device = Device::create(Arc::new(physical_device))?;
 
-        let swapchain = super::swapchain::Swapchain::new(&device.clone(), &surface.clone())?;
+        let swapchain = super::swapchain::Swapchain::new(
+            &device.clone(),
+            &surface.clone(),
+            SwapchainDesc {
+                dims: vk::Extent2D {
+                    height: window.inner_size().height,
+                    width: window.inner_size().width,
+                },
+            },
+        )?;
 
         Ok(Self {
             device,

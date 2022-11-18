@@ -95,10 +95,7 @@ impl Renderer {
                 .layer_count(1)
                 .render_area(
                     vk::Rect2D::builder()
-                        .extent(vk::Extent2D {
-                            width: 1920,
-                            height: 1080,
-                        })
+                        .extent(swapchain.desc.dims)
                         .offset(vk::Offset2D { x: 0, y: 0 })
                         .build(),
                 );
@@ -132,7 +129,7 @@ impl Renderer {
                     .raw
                     .cmd_begin_rendering(main_cb.raw, &render_info);
 
-                render_triangle(&self.device.clone(), main_cb);
+                render_triangle(&self.device.clone(), main_cb, swapchain.desc);
 
                 self.device.raw.cmd_end_rendering(main_cb.raw);
 
