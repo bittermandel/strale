@@ -157,12 +157,12 @@ Camera makeCamera()
     float theta = radians(20.0);
     
     float angle = pc.time / 2.0;
-    mat4 rotationMatrix = mat4(cos(angle), 0.0, sin(angle), 0.0,
+    mat4 rotationMatrix = mat4(cos(angle), 0.0, -sin(angle), 0.0,
                                     0.0, 1.0,        0.0, 0.0,
-                            -sin(angle),  0.0, cos(angle), 0.0,
+                            sin(angle),  0.0, cos(angle), 0.0,
                                     0.0,  0.0,        0.0, 1.0);
 
-    lookfrom = vec3(vec4(lookfrom, 1.0) * rotationMatrix);
+    lookfrom = vec3(rotationMatrix * vec4(lookfrom, 1.0));
 
     float h = tan(theta/2.0);
     float viewport_height = 2.0 * h;
