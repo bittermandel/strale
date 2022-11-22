@@ -1,7 +1,7 @@
 use std::sync::Arc;
 
-use anyhow::Result;
-use ash::vk::{self, ImageViewCreateFlags};
+
+use ash::vk::{self};
 
 use super::device::Device;
 

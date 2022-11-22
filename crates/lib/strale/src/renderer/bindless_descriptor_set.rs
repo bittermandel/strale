@@ -1,8 +1,8 @@
-use ash::vk::{self, CommandBuffer, DescriptorBufferInfo};
+use ash::vk;
 
 use super::vulkan::device::Device;
 
-pub unsafe fn create_bindless_descriptor_set_layout(device: &Device) -> vk::DescriptorSetLayout {
+pub fn create_bindless_descriptor_set_layout(device: &Device) -> vk::DescriptorSetLayout {
     let raw_device = &device.raw;
 
     let set_binding_flags = vec![
@@ -48,7 +48,7 @@ pub unsafe fn create_bindless_descriptor_set_layout(device: &Device) -> vk::Desc
 pub fn create_bindless_descriptor_set(device: &Device) -> vk::DescriptorSet {
     let raw_device = &device.raw;
 
-    let descriptor_set_layout = unsafe { create_bindless_descriptor_set_layout(device) };
+    let descriptor_set_layout = create_bindless_descriptor_set_layout(device);
 
     let descriptor_pool_info = vk::DescriptorPoolCreateInfo::builder()
         .pool_sizes(&[vk::DescriptorPoolSize {

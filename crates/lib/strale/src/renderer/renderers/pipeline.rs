@@ -1,6 +1,6 @@
 use ash::vk;
 
-use crate::renderer::vulkan::device::{CommandBuffer, Device};
+use crate::renderer::vulkan::device::Device;
 
 #[derive(Default)]
 pub struct Pipeline {

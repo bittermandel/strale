@@ -46,8 +46,8 @@ impl Instance {
     fn create(builder: DeviceBuilder) -> Result<Self> {
         let entry = unsafe { ash::Entry::load()? };
 
-        let mut required_layer_names: Vec<CString> = Vec::new();
-        required_layer_names.push(CString::new("VK_LAYER_KHRONOS_validation").unwrap());
+        let required_layer_names: Vec<CString> =
+            vec![CString::new("VK_LAYER_KHRONOS_validation").unwrap()];
 
         let layer_names: Vec<*const i8> = required_layer_names
             .iter()
@@ -75,14 +75,14 @@ impl Instance {
         #[allow(deprecated)]
         let debug_loader = ext::DebugReport::new(&entry, &instance);
 
-        let debug_callback = unsafe {
+        let _debug_callback = unsafe {
             #[allow(deprecated)]
             debug_loader
                 .create_debug_report_callback(&debug_info, None)
                 .unwrap()
         };
 
-        let debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
+        let _debug_utils = ash::extensions::ext::DebugUtils::new(&entry, &instance);
 
         Ok(Self {
             entry,

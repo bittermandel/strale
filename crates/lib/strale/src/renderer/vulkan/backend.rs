@@ -1,7 +1,7 @@
-use std::{sync::Arc, time::Instant};
+use std::{sync::Arc};
 
 use ash::vk;
-use raw_window_handle::{HasRawDisplayHandle, HasRawWindowHandle};
+use raw_window_handle::{HasRawDisplayHandle};
 use winit::window::Window;
 
 use crate::renderer::vulkan::swapchain::SwapchainDesc;
@@ -11,7 +11,7 @@ use super::{
     instance::Instance,
     physical_device::{enumerate_physical_devices, PhysicalDeviceList},
     surface::Surface,
-    swapchain::{self, Swapchain},
+    swapchain::{Swapchain},
 };
 
 pub struct Backend {
@@ -33,7 +33,7 @@ impl Backend {
 
         log::info!("instance created");
 
-        let surface = Surface::create(&instance, &window)?;
+        let surface = Surface::create(&instance, window)?;
 
         let physical_devices =
             enumerate_physical_devices(&instance)?.with_presentation_support(&surface);
@@ -54,8 +54,8 @@ impl Backend {
         let device = Device::create(Arc::new(physical_device))?;
 
         let swapchain = super::swapchain::Swapchain::new(
-            &device.clone(),
-            &surface.clone(),
+            &device,
+            &surface,
             SwapchainDesc {
                 dims: vk::Extent2D {
                     height: window.inner_size().height,

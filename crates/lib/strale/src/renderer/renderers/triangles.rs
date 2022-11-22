@@ -61,7 +61,7 @@ impl TrianglesPipeline {
                 .expect("Fragment shader module error")
         };
 
-        let descriptor_set_layouts = &[unsafe { create_bindless_descriptor_set_layout(device) }];
+        let descriptor_set_layouts = &[create_bindless_descriptor_set_layout(device)];
 
         let mut pipeline = vk::PipelineRenderingCreateInfo::builder()
             .color_attachment_formats(&[vk::Format::B8G8R8A8_UNORM]);
@@ -80,16 +80,14 @@ impl TrianglesPipeline {
             .logic_op(vk::LogicOp::CLEAR)
             .attachments(&color_blend_attachment_states);
 
-        let layout_create_info = unsafe {
-            vk::PipelineLayoutCreateInfo::builder()
-                .set_layouts(descriptor_set_layouts)
-                .push_constant_ranges(&[vk::PushConstantRange::builder()
-                    .stage_flags(vk::ShaderStageFlags::FRAGMENT)
-                    .offset(0)
-                    .size(std::mem::size_of::<TrianglesPushConstant>() as u32)
-                    .build()])
-                .build()
-        };
+        let layout_create_info = vk::PipelineLayoutCreateInfo::builder()
+            .set_layouts(descriptor_set_layouts)
+            .push_constant_ranges(&[vk::PushConstantRange::builder()
+                .stage_flags(vk::ShaderStageFlags::FRAGMENT)
+                .offset(0)
+                .size(std::mem::size_of::<TrianglesPushConstant>() as u32)
+                .build()])
+            .build();
 
         let pipeline_layout = unsafe {
             device

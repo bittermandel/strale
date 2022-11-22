@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use ash::vk::{
     self, PhysicalDeviceAccelerationStructurePropertiesKHR, PhysicalDeviceMemoryProperties,
-    PhysicalDeviceProperties, PhysicalDeviceRayTracingPipelinePropertiesKHR,
+    PhysicalDeviceProperties,
 };
 
 use super::{instance::Instance, surface::Surface};
@@ -70,7 +70,7 @@ pub trait PhysicalDeviceList {
 impl PhysicalDeviceList for Vec<PhysicalDevice> {
     fn with_presentation_support(self, surface: &Surface) -> Self {
         self.into_iter()
-            .filter_map(|mut pdevice| {
+            .filter_map(|pdevice| {
                 let supports_presentation =
                     pdevice
                         .queue_families

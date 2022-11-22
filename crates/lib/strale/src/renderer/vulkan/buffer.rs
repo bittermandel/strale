@@ -76,7 +76,7 @@ impl Device {
         }
 
         let buffer = Self::internal_create_buffer(
-            &self,
+            self,
             desc,
             &mut self.global_allocator.lock().unwrap(),
             name,
@@ -90,7 +90,7 @@ impl Device {
             };
 
             let mut empty_buffer = Self::internal_create_buffer(
-                &self,
+                self,
                 empty_desc,
                 &mut self.global_allocator.lock().unwrap(),
                 "empty buffer",
@@ -137,7 +137,7 @@ impl Device {
                     )
                     .expect("queue submit failed.");
 
-                self.raw.device_wait_idle();
+                self.raw.device_wait_idle().unwrap();
             };
         }
 

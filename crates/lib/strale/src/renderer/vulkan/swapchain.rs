@@ -3,7 +3,7 @@ use std::sync::Arc;
 use anyhow::Result;
 use ash::{
     extensions::khr,
-    vk::{self, ColorSpaceKHR, Extent2D, SwapchainKHR},
+    vk::{self, ColorSpaceKHR, SwapchainKHR},
 };
 
 use super::{device::Device, image::Image, surface::Surface};

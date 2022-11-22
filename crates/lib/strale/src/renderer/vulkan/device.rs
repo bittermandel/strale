@@ -2,7 +2,7 @@ use std::{
     collections::HashSet,
     os::raw::c_char,
     sync::{Arc, Mutex},
-    time::{Duration, Instant},
+    time::{Instant},
 };
 
 use anyhow::Result;
@@ -34,9 +34,9 @@ pub struct DeviceFrame {
 
 impl DeviceFrame {
     pub fn new(
-        pdevice: &PhysicalDevice,
+        _pdevice: &PhysicalDevice,
         device: &ash::Device,
-        global_allocator: &mut Allocator,
+        _global_allocator: &mut Allocator,
         queue_family: &QueueFamily,
     ) -> Self {
         Self {
@@ -197,10 +197,10 @@ impl Device {
         let mut vulkan_memory_model = vk::PhysicalDeviceVulkanMemoryModelFeaturesKHR::default();
         let mut get_buffer_device_address_features =
             ash::vk::PhysicalDeviceBufferDeviceAddressFeatures::default();
-        let mut acceleration_structure_features =
+        let _acceleration_structure_features =
             ash::vk::PhysicalDeviceAccelerationStructureFeaturesKHR::default();
 
-        let mut ray_tracing_pipeline_features =
+        let _ray_tracing_pipeline_features =
             ash::vk::PhysicalDeviceRayTracingPipelineFeaturesKHR::default();
 
         let mut features13 = vk::PhysicalDeviceVulkan13Features::builder()

@@ -1,15 +1,10 @@
-use std::process::exit;
-
-use strale::renderer::{renderer::Renderer, vulkan::backend::Backend};
+use strale::renderer::{vulkan::backend::Backend, Renderer};
 use winit::{
-    dpi::PhysicalSize,
     event::{Event, WindowEvent},
     event_loop::{ControlFlow, EventLoop},
     platform::run_return::EventLoopExtRunReturn,
     window::WindowBuilder,
 };
-
-mod runtime;
 
 fn main() {
     env_logger::init();
@@ -37,13 +32,12 @@ fn main() {
             *control_flow = ControlFlow::Poll;
 
             match &event {
-                Event::WindowEvent { event, .. } => match event {
-                    WindowEvent::CloseRequested => {
+                Event::WindowEvent { event, .. } => {
+                    if event == &WindowEvent::CloseRequested {
                         *control_flow = ControlFlow::Exit;
                         running = false;
                     }
-                    _ => {}
-                },
+                }
                 Event::MainEventsCleared => {
                     *control_flow = ControlFlow::Exit;
                 }
