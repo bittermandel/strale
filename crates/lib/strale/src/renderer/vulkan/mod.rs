@@ -1,4 +1,5 @@
 pub mod backend;
+pub mod buffer;
 pub mod device;
 mod image;
 pub mod instance;

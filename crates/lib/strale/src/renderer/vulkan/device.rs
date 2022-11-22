@@ -126,6 +126,11 @@ impl Device {
         let mut device_extension_names = vec![
             khr::Swapchain::name().as_ptr(),
             khr::DynamicRendering::name().as_ptr(),
+            vk::KhrGetMemoryRequirements2Fn::name().as_ptr(),
+            vk::KhrMaintenance1Fn::name().as_ptr(),
+            vk::KhrMaintenance2Fn::name().as_ptr(),
+            vk::KhrMaintenance3Fn::name().as_ptr(),
+            vk::KhrUniformBufferStandardLayoutFn::name().as_ptr(),
         ];
 
         let ray_tracing_extensions = [
@@ -198,14 +203,25 @@ impl Device {
         let mut ray_tracing_pipeline_features =
             ash::vk::PhysicalDeviceRayTracingPipelineFeaturesKHR::default();
 
-        let mut features13 = vk::PhysicalDeviceVulkan13Features::builder().dynamic_rendering(true);
+        let mut features13 = vk::PhysicalDeviceVulkan13Features::builder()
+            .dynamic_rendering(true)
+            .build();
         let mut features2 = vk::PhysicalDeviceFeatures2::builder()
             .push_next(&mut scalar_block)
             .push_next(&mut descriptor_indexing)
             .push_next(&mut imageless_framebuffer)
             .push_next(&mut shader_float16_int8)
             .push_next(&mut vulkan_memory_model)
-            .push_next(&mut get_buffer_device_address_features);
+            .push_next(&mut get_buffer_device_address_features)
+            .build();
+
+        unsafe {
+            (physical_device
+                .instance
+                .raw
+                .fp_v1_1()
+                .get_physical_device_features2)(physical_device.raw, &mut features2);
+        }
 
         let device_create_info = vk::DeviceCreateInfo::builder()
             .queue_create_infos(&universal_queue_info)
@@ -231,6 +247,8 @@ impl Device {
                     log_leaks_on_shutdown: false,
                     log_memory_information: true,
                     log_allocations: true,
+                    log_stack_traces: true,
+                    store_stack_traces: true,
                     ..Default::default()
                 },
                 buffer_device_address: true,

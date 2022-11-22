@@ -1,7 +1,10 @@
 use std::sync::Arc;
 
 use anyhow::Result;
-use ash::vk::{self, PhysicalDeviceMemoryProperties, PhysicalDeviceProperties};
+use ash::vk::{
+    self, PhysicalDeviceAccelerationStructurePropertiesKHR, PhysicalDeviceMemoryProperties,
+    PhysicalDeviceProperties, PhysicalDeviceRayTracingPipelinePropertiesKHR,
+};
 
 use super::{instance::Instance, surface::Surface};
 
@@ -17,6 +20,7 @@ pub struct PhysicalDevice {
     pub queue_families: Vec<QueueFamily>,
     pub properties: PhysicalDeviceProperties,
     pub memory_properties: PhysicalDeviceMemoryProperties,
+    pub ray_tracing_properties: PhysicalDeviceAccelerationStructurePropertiesKHR,
 }
 
 pub fn enumerate_physical_devices(instance: &Arc<Instance>) -> Result<Vec<PhysicalDevice>> {
@@ -40,6 +44,11 @@ pub fn enumerate_physical_devices(instance: &Arc<Instance>) -> Result<Vec<Physic
                     .collect();
 
                 let memory_properties = instance.raw.get_physical_device_memory_properties(pdevice);
+                let ray_tracing_properties =
+                    ash::extensions::khr::AccelerationStructure::get_properties(
+                        &instance.raw,
+                        pdevice,
+                    );
 
                 PhysicalDevice {
                     instance: instance.clone(),
@@ -47,6 +56,7 @@ pub fn enumerate_physical_devices(instance: &Arc<Instance>) -> Result<Vec<Physic
                     queue_families,
                     memory_properties,
                     properties,
+                    ray_tracing_properties,
                 }
             })
             .collect())
